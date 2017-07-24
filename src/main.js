@@ -49,10 +49,11 @@ class App extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      pokemonLookup: [],
+      pokemonLookup: {},
       pokemonSelected: null,
-      pokemonNameError: '',
+      pokemonNameError: null,
     }
+    this.pokemonSelect = this.pokemonSelect.bind(this)
     }
 
     componentDidUpdate(){
@@ -75,7 +76,7 @@ class App extends React.Component {
     }
 
     pokemonSelect(name){
-      if(!pokemonLookup[name]){
+      if(!this.state.pokemonLookup[name]){
         //do something on state that enables the iew to show an error that the pokemon does not exist
         this.setState({
           pokemonSelected: null,
@@ -83,9 +84,13 @@ class App extends React.Component {
         })
       } else{
         //make a request to the pokemon api and do something on state to store the pokemon details to be displatd to the user
-        superagent.get(pokemonLookup[name])
+        superagent.get(this.state.pokemonLookup[name])
         .then(res => {
           console.log('selected pokemon', res.body);
+          this.setState({
+            pokemonSelected: res.body,
+            pokemonNameError: null,
+          })
         })
         .catch(console.error)
 
@@ -97,7 +102,33 @@ class App extends React.Component {
       <div>
         <h1> Form Demo </h1>
         <PokemonForm pokemonSelect={this.pokemonSelect} />
-        <p>pokemon name error: {this.state.pokemonNameError}</p>
+        {this.state.pokemonNameError ?
+          <div>
+          <h2> pokemon {this.state.pokemonNameError} does not exist </h2>
+          <p> make another request </p>
+          </div> :
+          <div>
+          {this.state.pokemonSelected ?
+          <div>
+            <h2> selected {this.state.pokemonSelected.name}</h2>
+            <p> booyea </p>
+            <h3> abilities </h3>
+            <ul>
+            {this.state.pokemonSelected.abilities.map((item,i) => {
+              return(
+                <li key={i}>
+                <p> {item.ability.name}</p>
+                </li>
+              )
+            })}
+            </ul>
+           </div>  :
+           <div>
+            <p> make a request </p>
+            </div>
+         }
+         </div>
+       }
       </div>
     )
   }
